@@ -1,0 +1,238 @@
+╔════════════════════════════════════════════════════════════════╗
+║                                                                ║
+║              ECOWISELY MOBILE WEB APP                          ║
+║         Next.js Carbon Footprint Tracker (Mobile-Only)         ║
+║                                                                ║
+╚════════════════════════════════════════════════════════════════╝
+
+QUICK START
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Install:      bash install.sh  (or npm install)
+2. Setup:        cp .env.example .env.local
+3. Run:          npm run dev
+4. Access:       http://localhost:3000 (or http://YOUR_IP:3000)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROJECT STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FrontEnd/
+│
+├─ app/                      # Pages & Routes
+│  ├─ page.js               # Dashboard
+│  ├─ log-activity/         # Log Activity
+│  ├─ recommendations/      # Eco Tips
+│  ├─ api/activities/       # API Proxy
+│  └─ layout.js             # Root Layout + Nav
+│
+├─ components/               # Reusable UI
+│  ├─ Navigation.js         # Bottom Tabs
+│  ├─ ActivityLogger.js     # Activity Form
+│  ├─ CarbonChart.js        # Charts
+│  ├─ ProgressBar.js        # Progress
+│  ├─ ActivityHistory.js    # Activity List
+│  └─ RecommendationCard.js # Tip Cards
+│
+├─ lib/                      # Utilities
+│  ├─ api.js                # Axios Client
+│  └─ constants.js          # App Constants
+│
+├─ styles/
+│  └─ globals.css           # Tailwind CSS
+│
+└─ public/
+   ├─ manifest.json         # PWA Config
+   └─ icons/                # App Icons
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+KEY FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Mobile-Only Design        Max width 430px
+✅ Bottom Tab Navigation     iOS/Android style
+✅ Activity Logging          Transport/Energy/Food/Waste
+✅ Data Visualization        Recharts integration
+✅ Eco Recommendations       Personalized tips
+✅ Progress Tracking         Daily/Weekly/Monthly goals
+✅ Beautiful UI              Tailwind CSS + Animations
+✅ Backend Ready             API proxy layer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEPENDENCIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• next          14.0.4    # React Framework
+• react         18.2.0    # UI Library
+• tailwindcss   3.3.6     # CSS Framework
+• recharts      2.10.3    # Charts
+• axios         1.6.2     # HTTP Client
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+THEME COLORS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Primary:   #22c55e (Green)  # Main brand color
+Secondary: #3b82f6 (Blue)   # Accent color
+Success:   #22c55e (Green)  # Success states
+Warning:   #f59e0b (Orange) # Warnings
+Danger:    #ef4444 (Red)    # Errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+NPM SCRIPTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+npm run dev     # Start development server (port 3000)
+npm run build   # Build for production
+npm start       # Start production server
+npm run lint    # Run ESLint
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CONFIGURATION FILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ package.json          # Dependencies
+✓ next.config.js        # Next.js config
+✓ tailwind.config.js    # Tailwind theme
+✓ postcss.config.js     # PostCSS setup
+✓ jsconfig.json         # Path aliases (@/*)
+✓ .env.example          # Environment template
+✓ .gitignore            # Git ignore rules
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DOCUMENTATION FILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+README.md            # Project overview & features
+SETUP.md             # Detailed setup guide
+PROJECT_SUMMARY.md   # Complete summary
+CHECKLIST.md         # Development checklist
+THIS_FILE.txt        # Quick reference
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+API INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Backend URL:  FLASK_API_URL in .env.local
+API Proxy:    /app/api/activities/route.js
+Client:       lib/api.js (Axios)
+
+Endpoints:
+  GET    /api/activities       # Fetch all
+  POST   /api/activities       # Create new
+  PUT    /api/activities       # Update
+  DELETE /api/activities?id=X  # Delete
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PAGES & ROUTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/                      Dashboard (Stats, Charts, History)
+/log-activity          Log Activity (Form)
+/recommendations       Eco Tips (Recommendations)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CARBON GOALS (Configurable)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Daily:    16.4 kg CO₂e
+Weekly:   114.8 kg CO₂e
+Monthly:  492 kg CO₂e
+
+Edit in: lib/constants.js
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TESTING ON MOBILE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Find your IP:
+   macOS/Linux: ifconfig | grep "inet " | grep -v 127.0.0.1
+   Windows:     ipconfig
+
+2. Start server:
+   npm run dev
+
+3. Access from mobile:
+   http://YOUR_IP:3000
+
+4. Test all features!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PRO TIPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Use Chrome DevTools mobile emulator (F12)
+• Test on REAL mobile devices for best results
+• App is MOBILE-ONLY (desktop shows message)
+• Components use 'use client' for interactivity
+• Uses mock data by default (connect backend)
+• Bottom nav height: 64px + safe area
+• All icons are emojis (no image files needed)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Port in use:
+  lsof -ti:3000 | xargs kill -9
+
+Module errors:
+  rm -rf node_modules .next && npm install
+
+Styles not loading:
+  npm run dev (restart server)
+
+CSS lint errors:
+  Ignore - will disappear after npm install
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEPLOYMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Vercel (Recommended):
+  npm install -g vercel
+  vercel
+
+Other Options:
+  • Netlify
+  • AWS Amplify
+  • Docker
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROJECT STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Project structure created
+✅ All pages implemented
+✅ All components built
+✅ Styling complete
+✅ API layer ready
+✅ Documentation written
+✅ Installation script ready
+
+NEXT: Run npm install and start coding!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ACTIVITY TYPES SUPPORTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transport:  Car, Bus, Train, Bike, Walk, Flight
+Energy:     Electricity, Gas, Water
+Food:      Beef, Chicken, Fish, Vegetables, Dairy
+Waste:     General, Recycled, Compost
