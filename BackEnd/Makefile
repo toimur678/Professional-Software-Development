@@ -2,20 +2,30 @@
 # EcoWisely Backend - Makefile for Mac (Apple Silicon) Optimized Operations
 # =============================================================================
 
-.PHONY: help install run run-dev test clean
+.PHONY: help install run run-dev test clean train train-enhanced generate generate-enhanced test-apis
 
 # Default target
 help:
 	@echo "EcoWisely ML Backend - Available Commands"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo ""
-	@echo "  make install    - Install dependencies"
-	@echo "  make run        - Run server (Mac M4 optimized, NO reload)"
-	@echo "  make run-dev    - Run server with auto-reload (higher CPU)"
-	@echo "  make train      - Train the ML model"
-	@echo "  make generate   - Generate sample data"
-	@echo "  make test       - Test the API endpoints"
-	@echo "  make clean      - Remove cache files"
+	@echo "  make install          - Install dependencies"
+	@echo "  make run              - Run server (Mac M4 optimized, NO reload)"
+	@echo "  make run-dev          - Run server with auto-reload (higher CPU)"
+	@echo ""
+	@echo "  Data Generation:"
+	@echo "  make generate         - Generate basic sample data (1000 samples)"
+	@echo "  make generate-enhanced - Generate enhanced data (10000 samples)"
+	@echo ""
+	@echo "  Model Training:"
+	@echo "  make train            - Train basic ML model"
+	@echo "  make train-enhanced   - Train enhanced model (RF + AdaBoost + GB)"
+	@echo ""
+	@echo "  Testing:"
+	@echo "  make test             - Test basic API endpoints"
+	@echo "  make test-apis        - Run comprehensive API tests"
+	@echo ""
+	@echo "  make clean            - Remove cache files"
 	@echo ""
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
@@ -43,13 +53,23 @@ run-dev:
 
 # Train the ML model
 train:
-	@echo "Training ML model..."
+	@echo "Training basic ML model..."
 	python train_model.py
+
+# Train enhanced model with multiple algorithms
+train-enhanced:
+	@echo "Training enhanced ML model (RF + AdaBoost + GB)..."
+	python train_enhanced_model.py
 
 # Generate sample data
 generate:
-	@echo "Generating sample data..."
+	@echo "Generating basic sample data (1000 samples)..."
 	python generate_data.py
+
+# Generate enhanced sample data
+generate-enhanced:
+	@echo "Generating enhanced sample data (10000 samples)..."
+	python generate_enhanced_data.py
 
 # Test API endpoints
 test:
@@ -65,6 +85,11 @@ test:
 	curl -s -X POST http://localhost:8000/predict \
 		-H "Content-Type: application/json" \
 		-d '{"transport_kg": 12, "diet_kg": 2, "energy_kg": 3}' | python -m json.tool
+
+# Run comprehensive API tests
+test-apis:
+	@echo "Running comprehensive API tests..."
+	python test_apis.py
 
 # Clean up cache files
 clean:

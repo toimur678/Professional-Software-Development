@@ -2,6 +2,7 @@ import { Leaf, TrendingDown, Award, Car, Hand } from "lucide-react"
 import { StatsCard } from "@/components/dashboard/StatsCard"
 import { CarbonChart } from "@/components/dashboard/CarbonChart"
 import { RecentActivity } from "@/components/dashboard/RecentActivity"
+import { WeatherWidget } from "@/components/dashboard/WeatherWidget"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
@@ -149,6 +150,9 @@ export default async function DashboardPage() {
         </h2>
         <p className="text-slate-500 mt-1">{currentDate}</p>
       </div>
+
+      {/* Weather-Based Recommendations */}
+      <WeatherWidget />
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

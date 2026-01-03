@@ -1,0 +1,9 @@
+2026-01-03 23:09:42,108 - WARNING - python-dotenv not installed, using system environment
+2026-01-03 23:09:42,108 - INFO - CLIMATIQ_API_KEY: fail - Not set
+2026-01-03 23:09:42,108 - INFO - OPENWEATHERMAP_API_KEY: fail - Not set
+2026-01-03 23:09:42,108 - INFO - GOOGLE_DIRECTIONS_API_KEY: fail - Not set
+2026-01-03 23:09:42,108 - INFO - SUPABASE_URL: fail - Not set
+2026-01-03 23:09:42,108 - INFO - SUPABASE_KEY: fail - Not set
+2026-01-03 23:09:42,108 - INFO - SENTRY_DSN: warn - Not configured (optional)
+2026-01-03 23:09:42,108 - INFO - MIXPANEL_TOKEN: warn - Not configured (optional)
+2026-01-03 23:09:42,108 - INFO - SECRET_KEY: warn - Not configured (optional)

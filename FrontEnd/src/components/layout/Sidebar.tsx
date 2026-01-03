@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, PlusCircle, LineChart, Trophy, Lightbulb, LogOut, Sprout } from 'lucide-react'
+import { LayoutDashboard, PlusCircle, LineChart, Trophy, Lightbulb, LogOut, Sprout, Medal, Flame, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 
@@ -12,6 +12,9 @@ const routes = [
   { label: 'Insights', icon: LineChart, href: '/insights', color: 'text-pink-700' },
   { label: 'Achievements', icon: Trophy, href: '/achievements', color: 'text-orange-500' },
   { label: 'Recommendations', icon: Lightbulb, href: '/recommendations', color: 'text-emerald-500' },
+  { label: 'Leaderboard', icon: Medal, href: '/leaderboard', color: 'text-amber-500' },
+  { label: 'Challenges', icon: Flame, href: '/challenges', color: 'text-orange-600' },
+  { label: 'Community', icon: Users, href: '/community', color: 'text-blue-500' },
 ]
 
 export function Sidebar() {

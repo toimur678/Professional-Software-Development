@@ -9,35 +9,9 @@ import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/toast"
-import { Car, Utensils, Zap, Loader2 } from "lucide-react"
+import { Car, Utensils, Zap, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
-
-// CO2 emission factors (kg CO2 per km or per unit)
-const CO2_FACTORS = {
-  transport: {
-    car: 0.21,           // kg CO2 per km
-    'electric-car': 0.05,
-    bus: 0.089,
-    train: 0.041,
-    bike: 0,
-    walk: 0,
-    carpool: 0.105,      // half of car
-  },
-  diet: {
-    vegan: 0.5,          // kg CO2 per meal
-    vegetarian: 1.0,
-    pescatarian: 1.5,
-    poultry: 2.0,
-    'red-meat': 3.5,
-    local: 0.8,
-  },
-  energy: {
-    electricity: 0.5,    // kg CO2 per kWh
-    'natural-gas': 0.18,
-    solar: 0,
-    'heating-oil': 2.7,
-  },
-}
+import { calculateCarbon } from '@/lib/api/carbon-service'
 
 export default function TrackPage() {
   return (
@@ -89,26 +63,65 @@ function TransportForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [mode, setMode] = useState('')
   const [distance, setDistance] = useState('')
+  const [dataSource, setDataSource] = useState<string | null>(null)
+  const [confidence, setConfidence] = useState<string | null>(null)
+  const [apiError, setApiError] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
 
+  // Fallback CO2 calculation
+  const calculateFallback = (distanceKm: number): number => {
+    const fallbackFactors: { [key: string]: number } = {
+      car: 0.21,
+      'electric-car': 0.05,
+      bus: 0.089,
+      train: 0.041,
+      bike: 0,
+      walk: 0,
+      carpool: 0.105,
+    }
+    return distanceKm * (fallbackFactors[mode] || 0.21)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setApiError(null)
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      const co2Factor = CO2_FACTORS.transport[mode as keyof typeof CO2_FACTORS.transport] || 0.21
-      const co2_kg = parseFloat(distance) * co2Factor
+      const distanceValue = parseFloat(distance)
+      let co2_kg: number
+      let source = 'Fallback'
+      let conf = 'estimated'
+
+      // Try to get accurate calculation from API
+      try {
+        const result = await calculateCarbon('transport_car', distanceValue, 'km')
+        co2_kg = result.co2_kg
+        source = result.data_source
+        conf = result.confidence
+        setDataSource(source)
+        setConfidence(conf)
+      } catch (apiErr) {
+        // Fall back to local calculation
+        console.warn('API calculation failed, using fallback:', apiErr)
+        co2_kg = calculateFallback(distanceValue)
+        source = 'Fallback'
+        conf = 'estimated'
+        setDataSource(source)
+        setConfidence(conf)
+        setApiError('Using estimated calculation (API unavailable)')
+      }
 
       const { error } = await supabase.from('activities').insert({
         user_id: user.id,
         category: 'transport',
         type: mode,
-        value: parseFloat(distance),
+        value: distanceValue,
         co2_kg: co2_kg,
       })
 
@@ -123,13 +136,14 @@ function TransportForm() {
       // Reset form
       setMode('')
       setDistance('')
+      setApiError(null)
       
       // Refresh data
       router.refresh()
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to log activity. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to log activity. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -183,11 +197,31 @@ function TransportForm() {
             />
           </div>
 
+          {/* Status Messages */}
+          {apiError && (
+            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
+              <p className="text-sm text-amber-800">{apiError}</p>
+            </div>
+          )}
+
+          {dataSource && confidence && !apiError && (
+            <div className="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5" />
+              <div className="text-sm">
+                <p className="text-emerald-800 font-medium">
+                  Calculation from {dataSource}
+                </p>
+                <p className="text-emerald-700">Confidence: {confidence}</p>
+              </div>
+            </div>
+          )}
+
           <Button type="submit" disabled={isLoading} className="mt-2">
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Logging...
+                Calculating...
               </>
             ) : (
               "Log Transport"
@@ -203,20 +237,66 @@ function DietForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [mealType, setMealType] = useState('')
   const [dietType, setDietType] = useState('')
+  const [dataSource, setDataSource] = useState<string | null>(null)
+  const [confidence, setConfidence] = useState<string | null>(null)
+  const [apiError, setApiError] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
 
+  // Map diet types to API categories
+  const getDietActivityType = (diet: string): 'diet_meat' | 'energy_electricity' => {
+    // Simplified mapping - meat-based diets use diet_meat
+    if (diet === 'red-meat' || diet === 'poultry' || diet === 'pescatarian') {
+      return 'diet_meat'
+    }
+    return 'diet_meat' // Default
+  }
+
+  // Fallback calculation
+  const calculateFallback = (): number => {
+    const fallbackFactors: { [key: string]: number } = {
+      vegan: 0.5,
+      vegetarian: 1.0,
+      pescatarian: 1.5,
+      poultry: 2.0,
+      'red-meat': 3.5,
+      local: 0.8,
+    }
+    return fallbackFactors[dietType] || 1.5
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setApiError(null)
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      const co2Factor = CO2_FACTORS.diet[dietType as keyof typeof CO2_FACTORS.diet] || 1.5
-      const co2_kg = co2Factor // per meal
+      let co2_kg: number
+      let source = 'Fallback'
+      let conf = 'estimated'
+
+      // Try API calculation (use 1 kg as standard meal weight)
+      try {
+        const activityType = getDietActivityType(dietType)
+        const result = await calculateCarbon(activityType, 1, 'kg')
+        co2_kg = result.co2_kg
+        source = result.data_source
+        conf = result.confidence
+        setDataSource(source)
+        setConfidence(conf)
+      } catch (apiErr) {
+        console.warn('API calculation failed, using fallback:', apiErr)
+        co2_kg = calculateFallback()
+        source = 'Fallback'
+        conf = 'estimated'
+        setDataSource(source)
+        setConfidence(conf)
+        setApiError('Using estimated calculation (API unavailable)')
+      }
 
       const { error } = await supabase.from('activities').insert({
         user_id: user.id,
@@ -236,11 +316,12 @@ function DietForm() {
 
       setMealType('')
       setDietType('')
+      setApiError(null)
       router.refresh()
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to log meal. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to log meal. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -295,11 +376,31 @@ function DietForm() {
             </Select>
           </div>
 
+          {/* Status Messages */}
+          {apiError && (
+            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
+              <p className="text-sm text-amber-800">{apiError}</p>
+            </div>
+          )}
+
+          {dataSource && confidence && !apiError && (
+            <div className="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5" />
+              <div className="text-sm">
+                <p className="text-emerald-800 font-medium">
+                  Calculation from {dataSource}
+                </p>
+                <p className="text-emerald-700">Confidence: {confidence}</p>
+              </div>
+            </div>
+          )}
+
           <Button type="submit" disabled={isLoading} className="mt-2">
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Logging...
+                Calculating...
               </>
             ) : (
               "Log Meal"
@@ -315,26 +416,61 @@ function EnergyForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [energyType, setEnergyType] = useState('')
   const [usage, setUsage] = useState('')
+  const [dataSource, setDataSource] = useState<string | null>(null)
+  const [confidence, setConfidence] = useState<string | null>(null)
+  const [apiError, setApiError] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
 
+  // Fallback calculation
+  const calculateFallback = (usageKwh: number): number => {
+    const fallbackFactors: { [key: string]: number } = {
+      electricity: 0.5,
+      'natural-gas': 0.18,
+      solar: 0,
+      'heating-oil': 2.7,
+    }
+    return usageKwh * (fallbackFactors[energyType] || 0.5)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setApiError(null)
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      const co2Factor = CO2_FACTORS.energy[energyType as keyof typeof CO2_FACTORS.energy] || 0.5
-      const co2_kg = parseFloat(usage) * co2Factor
+      const usageValue = parseFloat(usage)
+      let co2_kg: number
+      let source = 'Fallback'
+      let conf = 'estimated'
+
+      // Try API calculation
+      try {
+        const result = await calculateCarbon('energy_electricity', usageValue, 'kWh')
+        co2_kg = result.co2_kg
+        source = result.data_source
+        conf = result.confidence
+        setDataSource(source)
+        setConfidence(conf)
+      } catch (apiErr) {
+        console.warn('API calculation failed, using fallback:', apiErr)
+        co2_kg = calculateFallback(usageValue)
+        source = 'Fallback'
+        conf = 'estimated'
+        setDataSource(source)
+        setConfidence(conf)
+        setApiError('Using estimated calculation (API unavailable)')
+      }
 
       const { error } = await supabase.from('activities').insert({
         user_id: user.id,
         category: 'energy',
         type: energyType,
-        value: parseFloat(usage),
+        value: usageValue,
         co2_kg: co2_kg,
       })
 
@@ -348,11 +484,12 @@ function EnergyForm() {
 
       setEnergyType('')
       setUsage('')
+      setApiError(null)
       router.refresh()
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to log energy usage. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to log energy usage. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -403,11 +540,31 @@ function EnergyForm() {
             />
           </div>
 
+          {/* Status Messages */}
+          {apiError && (
+            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
+              <p className="text-sm text-amber-800">{apiError}</p>
+            </div>
+          )}
+
+          {dataSource && confidence && !apiError && (
+            <div className="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5" />
+              <div className="text-sm">
+                <p className="text-emerald-800 font-medium">
+                  Calculation from {dataSource}
+                </p>
+                <p className="text-emerald-700">Confidence: {confidence}</p>
+              </div>
+            </div>
+          )}
+
           <Button type="submit" disabled={isLoading} className="mt-2">
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Logging...
+                Calculating...
               </>
             ) : (
               "Log Energy"

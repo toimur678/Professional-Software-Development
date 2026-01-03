@@ -1,0 +1,24 @@
+2026-01-03T20:09:42.139Z - Found environment file: .env.local
+2026-01-03T20:09:42.140Z - Environment File: pass - .env.local found
+2026-01-03T20:09:42.140Z - NEXT_PUBLIC_BACKEND_URL: Set (http://loc...)
+2026-01-03T20:09:42.140Z - NEXT_PUBLIC_BACKEND_URL: pass - Configured
+2026-01-03T20:09:42.140Z - NEXT_PUBLIC_SUPABASE_URL: Set (https://xn...)
+2026-01-03T20:09:42.140Z - NEXT_PUBLIC_SUPABASE_URL: pass - Configured
+2026-01-03T20:09:42.140Z - NEXT_PUBLIC_SUPABASE_ANON_KEY: Set (eyJhbGciOi...)
+2026-01-03T20:09:42.140Z - NEXT_PUBLIC_SUPABASE_ANON_KEY: pass - Configured
+2026-01-03T20:09:42.140Z - NEXT_PUBLIC_SENTRY_DSN: warn - Not configured (optional)
+2026-01-03T20:09:42.140Z - NEXT_PUBLIC_MIXPANEL_TOKEN: warn - Not configured (optional)
+2026-01-03T20:09:42.140Z - NEXT_PUBLIC_GA_TRACKING_ID: warn - Not configured (optional)
+2026-01-03T20:09:42.140Z - Node Modules: pass - Directory exists
+2026-01-03T20:09:42.140Z - next: Installed
+2026-01-03T20:09:42.140Z - react: Installed
+2026-01-03T20:09:42.140Z - @supabase/ssr: Installed
+2026-01-03T20:09:42.140Z - recharts: Installed
+2026-01-03T20:09:42.140Z - lucide-react: Installed
+2026-01-03T20:09:42.140Z - Key Packages: pass - All 5 packages installed
+2026-01-03T20:09:42.140Z - Testing backend at: http://localhost:8000
+2026-01-03T20:09:42.169Z - Backend API: fail - Error: fetch failed
+2026-01-03T20:09:42.169Z - Testing Supabase at: https://xnxbumsgvzlvjadzsdij.supabase.co
+2026-01-03T20:09:42.359Z - Supabase: pass - Accessible
+2026-01-03T20:09:42.360Z - Port 3000: pass - Available
+2026-01-03T20:09:42.360Z - Build: pass - Build found (7h old)

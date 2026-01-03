@@ -1,0 +1,49 @@
+{
+  "name": "ecowisely",
+  "version": "1.0.0",
+  "description": "EcoWisely - AI-powered carbon footprint tracker and sustainability assistant",
+  "private": true,
+  "scripts": {
+    "preflight": "cd BackEnd && python3 preflight_check.py && cd ../FrontEnd && node preflight-check.js",
+    "preflight:backend": "cd BackEnd && python3 preflight_check.py",
+    "preflight:frontend": "cd FrontEnd && node preflight-check.js",
+    "preflight:verbose": "cd BackEnd && python3 preflight_check.py --verbose && cd ../FrontEnd && node preflight-check.js --verbose",
+    "preflight:skip-apis": "cd BackEnd && python3 preflight_check.py --skip-apis && cd ../FrontEnd && node preflight-check.js --skip-backend",
+    "start": "./start-ecowisely.sh",
+    "start:force": "./start-ecowisely.sh --force",
+    "start:check-only": "./start-ecowisely.sh --check-only",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd BackEnd && source venv/bin/activate 2>/dev/null; uvicorn main:app --reload --port 8000",
+    "dev:frontend": "cd FrontEnd && npm run dev",
+    "build:frontend": "cd FrontEnd && npm run build",
+    "test:all": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd BackEnd && source venv/bin/activate 2>/dev/null; pytest -v",
+    "test:frontend": "cd FrontEnd && npm test",
+    "setup:backend": "cd BackEnd && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
+    "setup:frontend": "cd FrontEnd && npm install",
+    "setup": "npm run setup:backend && npm run setup:frontend",
+    "train:model": "cd BackEnd && source venv/bin/activate 2>/dev/null; python3 train_model.py",
+    "generate:data": "cd BackEnd && source venv/bin/activate 2>/dev/null; python3 generate_data.py",
+    "clean": "rm -rf BackEnd/venv BackEnd/__pycache__ FrontEnd/node_modules FrontEnd/.next",
+    "logs:backend": "tail -f BackEnd/preflight.log",
+    "logs:frontend": "tail -f FrontEnd/preflight-frontend.log"
+  },
+  "keywords": [
+    "carbon-footprint",
+    "sustainability",
+    "ai",
+    "machine-learning",
+    "eco-friendly",
+    "climate",
+    "environment"
+  ],
+  "author": "EcoWisely Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toimur678/Professional-Software-Development.git"
+  }
+}
