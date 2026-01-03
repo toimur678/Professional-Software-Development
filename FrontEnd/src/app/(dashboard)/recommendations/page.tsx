@@ -1,7 +1,8 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { Car, Utensils, Zap, Leaf, ArrowRight, CheckCircle2, Lightbulb, Globe } from "lucide-react"
+import { Car, Utensils, Zap, Leaf, ArrowRight, CheckCircle2, Lightbulb, Globe, Sparkles, AlertCircle } from "lucide-react"
+import { AI_RECOMMENDATION_DETAILS, AIRecommendationDetail } from "@/lib/recommendations/ai-mapping"
 
 interface Recommendation {
   id: string
@@ -11,6 +12,44 @@ interface Recommendation {
   impact: 'high' | 'medium' | 'low'
   potentialSaving: string
   isCompleted?: boolean
+}
+
+interface AIRecommendationResponse {
+  recommended_action: string;
+  input_stats: {
+    transport_kg: number;
+    diet_kg: number;
+    energy_kg: number;
+  };
+  total_emissions: number;
+}
+
+async function getAIRecommendation(userId: string): Promise<AIRecommendationResponse | null> {
+  try {
+    const response = await fetch("http://127.0.0.1:8000/predict", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        transport_kg: 12,
+        diet_kg: 2,
+        energy_kg: 3,
+      }),
+      // Disable caching for fresh recommendations
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.error("AI Recommendation API error:", response.status);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch AI recommendation:", error);
+    return null;
+  }
 }
 
 const recommendations: Recommendation[] = [
@@ -119,7 +158,84 @@ const getImpactBadge = (impact: Recommendation['impact']) => {
   }
 }
 
-export default function RecommendationsPage() {
+// AI Recommendation Card Component
+function AIRecommendationCard({ 
+  recommendation, 
+  details 
+}: { 
+  recommendation: AIRecommendationResponse; 
+  details: AIRecommendationDetail | null;
+}) {
+  const Icon = details ? getCategoryIcon(details.category) : Sparkles;
+  const colorClass = details ? getCategoryColor(details.category) : "text-purple-600 bg-purple-100";
+  const impactClass = details ? getImpactBadge(details.impact) : "bg-purple-100 text-purple-700 border-purple-200";
+
+  return (
+    <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50 shadow-lg">
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2 mb-2">
+          <Sparkles className="h-5 w-5 text-purple-600" />
+          <span className="text-sm font-semibold text-purple-600 uppercase tracking-wide">
+            AI-Powered Recommendation
+          </span>
+        </div>
+        <div className="flex items-start justify-between">
+          <div className={cn("p-2 rounded-lg", colorClass)}>
+            <Icon className="h-5 w-5" />
+          </div>
+          {details && (
+            <span className={cn(
+              "text-xs font-medium px-2 py-1 rounded-full border capitalize",
+              impactClass
+            )}>
+              {details.impact} impact
+            </span>
+          )}
+        </div>
+        <CardTitle className="text-lg mt-3">
+          {details?.title || recommendation.recommended_action.replace(/_/g, " ")}
+        </CardTitle>
+        <CardDescription className="text-base">
+          {details?.description || `Based on your emissions (${recommendation.total_emissions.toFixed(1)} kg CO₂), we recommend focusing on this area.`}
+        </CardDescription>
+      </CardHeader>
+      <CardFooter className="flex items-center justify-between pt-0">
+        <div className="flex items-center gap-1 text-sm text-purple-600 font-medium">
+          <Leaf className="h-4 w-4" />
+          {details?.potentialSaving || "Significant savings potential"}
+        </div>
+        <Button variant="default" size="sm" className="bg-purple-600 hover:bg-purple-700">
+          Get Started <ArrowRight className="h-4 w-4 ml-1" />
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
+
+// Fallback when AI service is unavailable
+function AIServiceUnavailable() {
+  return (
+    <Card className="border-2 border-dashed border-slate-300 bg-slate-50">
+      <CardContent className="pt-6">
+        <div className="flex items-center gap-3 text-slate-500">
+          <AlertCircle className="h-5 w-5" />
+          <div>
+            <p className="font-medium">AI Recommendations Unavailable</p>
+            <p className="text-sm">The AI service is currently offline. Check back later for personalized recommendations.</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default async function RecommendationsPage() {
+  // Fetch AI recommendation (using a placeholder userId for now)
+  const aiRecommendation = await getAIRecommendation("user-123");
+  const aiDetails = aiRecommendation 
+    ? AI_RECOMMENDATION_DETAILS[aiRecommendation.recommended_action] || null 
+    : null;
+
   const activeRecommendations = recommendations.filter(r => !r.isCompleted)
   const completedRecommendations = recommendations.filter(r => r.isCompleted)
 
@@ -133,6 +249,19 @@ export default function RecommendationsPage() {
         <p className="text-slate-500 mt-1">
           Personalized tips to reduce your carbon footprint
         </p>
+      </div>
+
+      {/* Top AI Recommendation */}
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-purple-500" />
+          Top AI Recommendation
+        </h3>
+        {aiRecommendation ? (
+          <AIRecommendationCard recommendation={aiRecommendation} details={aiDetails} />
+        ) : (
+          <AIServiceUnavailable />
+        )}
       </div>
 
       {/* Summary Card */}
