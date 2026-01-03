@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Mail, Lock } from "lucide-react"
+import { Loader2, Mail, Lock, Sprout } from "lucide-react"
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
@@ -50,7 +50,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <span className="text-3xl">🌱</span>
+            <Sprout className="h-10 w-10 text-emerald-600" />
             <span className="text-3xl font-bold text-emerald-600">EcoWisely</span>
           </Link>
         </div>

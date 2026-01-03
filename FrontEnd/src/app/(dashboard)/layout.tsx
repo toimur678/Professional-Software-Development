@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/layout/Sidebar'
 import { MobileSidebar } from '@/components/layout/MobileSidebar'
+import { Sprout } from 'lucide-react'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +13,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Mobile Header */}
       <div className="md:hidden flex items-center p-4 bg-white border-b">
         <MobileSidebar />
-        <h1 className="ml-4 text-xl font-bold text-emerald-600">🌱 EcoWisely</h1>
+        <h1 className="ml-4 text-xl font-bold text-emerald-600 flex items-center gap-2">
+          <Sprout className="h-6 w-6" /> EcoWisely
+        </h1>
       </div>
       
       {/* Main Content */}

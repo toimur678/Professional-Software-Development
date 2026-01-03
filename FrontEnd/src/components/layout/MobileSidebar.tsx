@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, LayoutDashboard, PlusCircle, LineChart, Trophy, Lightbulb, LogOut } from 'lucide-react'
+import { Menu, X, LayoutDashboard, PlusCircle, LineChart, Trophy, Lightbulb, LogOut, Sprout } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
@@ -38,8 +38,8 @@ export function MobileSidebar() {
           />
           <div className="fixed inset-y-0 left-0 w-72 bg-slate-900 p-4">
             <div className="flex items-center justify-between mb-8">
-              <Link href="/dashboard" className="text-2xl font-bold text-emerald-400">
-                🌱 EcoWisely
+              <Link href="/dashboard" className="text-2xl font-bold text-emerald-400 flex items-center gap-2">
+                <Sprout className="h-6 w-6" /> EcoWisely
               </Link>
               <button
                 onClick={() => setIsOpen(false)}

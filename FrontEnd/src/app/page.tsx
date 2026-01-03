@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Leaf, TrendingDown, Trophy, LineChart, ArrowRight } from "lucide-react"
+import { Leaf, TrendingDown, Trophy, LineChart, ArrowRight, Sprout, Globe } from "lucide-react"
 
 export default function LandingPage() {
   return (
@@ -9,7 +9,7 @@ export default function LandingPage() {
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl">🌱</span>
+          <Sprout className="h-8 w-8 text-emerald-600" />
           <span className="text-2xl font-bold text-emerald-600">EcoWisely</span>
         </Link>
         <div className="flex items-center gap-4">
@@ -25,8 +25,8 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-4xl mx-auto">
-          <span className="inline-block px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium mb-6">
-            🌍 Make Every Action Count
+          <span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium mb-6">
+            <Globe className="h-4 w-4" /> Make Every Action Count
           </span>
           <h1 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6">
             Track Your Carbon Footprint,{" "}
@@ -193,7 +193,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-xl">🌱</span>
+              <Sprout className="h-6 w-6 text-emerald-600" />
               <span className="text-xl font-bold text-emerald-600">EcoWisely</span>
             </div>
             <p className="text-slate-600 text-sm">

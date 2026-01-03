@@ -42,7 +42,7 @@ export default function InsightsClient({
       {/* Header */}
       <div>
         <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-          Insights 📊
+          Insights
         </h2>
         <p className="text-slate-500 mt-1">
           Understand your carbon footprint patterns

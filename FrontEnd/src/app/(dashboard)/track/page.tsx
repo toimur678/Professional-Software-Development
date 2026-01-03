@@ -45,7 +45,7 @@ export default function TrackPage() {
       {/* Header */}
       <div>
         <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-          Track Activity 📝
+          Track Activity
         </h2>
         <p className="text-slate-500 mt-1">
           Log your daily activities to track your carbon footprint

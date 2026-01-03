@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LucideIcon } from "lucide-react"
+import { LucideIcon, ArrowDown, ArrowUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface StatsCardProps {
@@ -32,10 +32,10 @@ export const StatsCard = ({
       <div className="flex items-center gap-2 mt-1">
         {trend && (
           <span className={cn(
-            "text-xs font-medium",
+            "text-xs font-medium flex items-center",
             trend.isPositive ? "text-emerald-600" : "text-red-500"
           )}>
-            {trend.isPositive ? "↓" : "↑"} {Math.abs(trend.value)}%
+            {trend.isPositive ? <ArrowDown className="h-3 w-3 mr-1" /> : <ArrowUp className="h-3 w-3 mr-1" />} {Math.abs(trend.value)}%
           </span>
         )}
         <p className="text-xs text-slate-500">{description}</p>

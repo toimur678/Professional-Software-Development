@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, PlusCircle, LineChart, Trophy, Lightbulb, LogOut } from 'lucide-react'
+import { LayoutDashboard, PlusCircle, LineChart, Trophy, Lightbulb, LogOut, Sprout } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 
@@ -29,7 +29,8 @@ export function Sidebar() {
     <div className="space-y-4 py-4 flex flex-col h-full bg-slate-900 text-white">
       <div className="px-3 py-2 flex-1">
         <Link href="/dashboard" className="flex items-center pl-3 mb-14">
-          <h1 className="text-2xl font-bold text-emerald-400">🌱 EcoWisely</h1>
+          <Sprout className="h-8 w-8 text-emerald-400 mr-2" />
+          <h1 className="text-2xl font-bold text-emerald-400">EcoWisely</h1>
         </Link>
         <div className="space-y-1">
           {routes.map((route) => (

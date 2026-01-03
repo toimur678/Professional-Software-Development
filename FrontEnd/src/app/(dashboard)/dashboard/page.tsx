@@ -1,4 +1,4 @@
-import { Leaf, TrendingDown, Award, Car } from "lucide-react"
+import { Leaf, TrendingDown, Award, Car, Hand } from "lucide-react"
 import { StatsCard } from "@/components/dashboard/StatsCard"
 import { CarbonChart } from "@/components/dashboard/CarbonChart"
 import { RecentActivity } from "@/components/dashboard/RecentActivity"
@@ -144,8 +144,8 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-          Welcome back, {userName}! 👋
+        <h2 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+          Welcome back, {userName}! <Hand className="h-8 w-8 text-yellow-500" />
         </h2>
         <p className="text-slate-500 mt-1">{currentDate}</p>
       </div>

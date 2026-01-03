@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { Car, Utensils, Zap, Leaf, ArrowRight, CheckCircle2 } from "lucide-react"
+import { Car, Utensils, Zap, Leaf, ArrowRight, CheckCircle2, Lightbulb, Globe } from "lucide-react"
 
 interface Recommendation {
   id: string
@@ -127,8 +127,8 @@ export default function RecommendationsPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-          Recommendations 💡
+        <h2 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+          Recommendations <Lightbulb className="h-8 w-8 text-yellow-500" />
         </h2>
         <p className="text-slate-500 mt-1">
           Personalized tips to reduce your carbon footprint
@@ -146,7 +146,7 @@ export default function RecommendationsPage() {
                 By following all active recommendations
               </p>
             </div>
-            <div className="text-6xl opacity-30">🌍</div>
+            <Globe className="h-24 w-24 opacity-30" />
           </div>
         </CardContent>
       </Card>
