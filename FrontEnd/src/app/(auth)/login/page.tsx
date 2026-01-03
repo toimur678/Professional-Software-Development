@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Mail, Lock } from "lucide-react"
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,11 +24,19 @@ export default function LoginPage() {
     setError('')
 
     try {
-      // Simulate login - replace with actual Supabase auth
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (signInError) {
+        setError(signInError.message)
+        return
+      }
+
       // On success, redirect to dashboard
       router.push('/dashboard')
+      router.refresh()
     } catch (err) {
       setError('Invalid email or password')
     } finally {

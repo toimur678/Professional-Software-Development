@@ -1,204 +1,116 @@
-'use client'
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
+import InsightsClient from "./InsightsClient"
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  AreaChart,
-  Area
-} from "recharts"
-import { TrendingDown, Calendar, Target } from "lucide-react"
+// Type definitions
+type SummaryRow = { date: string; total_co2: number }
+type ActivityRow = { category: string; co2_kg: number }
 
-const weeklyData = [
-  { day: "Mon", emissions: 8.5 },
-  { day: "Tue", emissions: 7.2 },
-  { day: "Wed", emissions: 5.8 },
-  { day: "Thu", emissions: 6.4 },
-  { day: "Fri", emissions: 7.1 },
-  { day: "Sat", emissions: 4.2 },
-  { day: "Sun", emissions: 3.8 },
-]
+export default async function InsightsPage() {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
 
-const categoryData = [
-  { name: "Transport", value: 45, color: "#3b82f6" },
-  { name: "Diet", value: 30, color: "#10b981" },
-  { name: "Energy", value: 25, color: "#f59e0b" },
-]
+  // Get daily summaries for the last 7 days
+  const today = new Date()
+  const sevenDaysAgo = new Date(today)
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
-const monthlyTrendData = [
-  { month: "Jul", emissions: 180 },
-  { month: "Aug", emissions: 165 },
-  { month: "Sep", emissions: 150 },
-  { month: "Oct", emissions: 142 },
-  { month: "Nov", emissions: 135 },
-  { month: "Dec", emissions: 127 },
-]
+  const { data: dailySummariesData } = await supabase
+    .from('daily_summaries')
+    .select('*')
+    .eq('user_id', user.id)
+    .gte('date', sevenDaysAgo.toISOString().split('T')[0])
+    .order('date', { ascending: true })
+  const dailySummaries = (dailySummariesData as SummaryRow[] | null) || []
 
-export default function InsightsPage() {
+  // Get all activities for category breakdown
+  const { data: activitiesData } = await supabase
+    .from('activities')
+    .select('category, co2_kg')
+    .eq('user_id', user.id)
+  const activities = (activitiesData as ActivityRow[] | null) || []
+
+  // Get monthly summaries for trend
+  const sixMonthsAgo = new Date(today)
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+
+  const { data: monthlySummariesData } = await supabase
+    .from('daily_summaries')
+    .select('date, total_co2')
+    .eq('user_id', user.id)
+    .gte('date', sixMonthsAgo.toISOString().split('T')[0])
+    .order('date', { ascending: true })
+  const monthlySummaries = (monthlySummariesData as SummaryRow[] | null) || []
+
+  // Process weekly data
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const weeklyData = dailySummaries.map(summary => ({
+    day: dayNames[new Date(summary.date).getDay()],
+    emissions: summary.total_co2 || 0
+  }))
+
+  // If no data, provide default empty week
+  if (weeklyData.length === 0) {
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      weeklyData.push({ day: dayNames[d.getDay()], emissions: 0 })
+    }
+  }
+
+  // Calculate category totals
+  const categoryTotals = { transport: 0, diet: 0, energy: 0 }
+  activities.forEach(activity => {
+    if (activity.category in categoryTotals) {
+      categoryTotals[activity.category as keyof typeof categoryTotals] += activity.co2_kg || 0
+    }
+  })
+  
+  const totalCategoryEmissions = categoryTotals.transport + categoryTotals.diet + categoryTotals.energy
+  const categoryData = totalCategoryEmissions > 0 ? [
+    { name: "Transport", value: Math.round((categoryTotals.transport / totalCategoryEmissions) * 100), color: "#3b82f6" },
+    { name: "Diet", value: Math.round((categoryTotals.diet / totalCategoryEmissions) * 100), color: "#10b981" },
+    { name: "Energy", value: Math.round((categoryTotals.energy / totalCategoryEmissions) * 100), color: "#f59e0b" },
+  ] : [
+    { name: "Transport", value: 33, color: "#3b82f6" },
+    { name: "Diet", value: 34, color: "#10b981" },
+    { name: "Energy", value: 33, color: "#f59e0b" },
+  ]
+
+  // Process monthly trend data
+  const monthlyTotals: { [key: string]: number } = {}
+  monthlySummaries.forEach(summary => {
+    const monthKey = new Date(summary.date).toLocaleString('default', { month: 'short' })
+    monthlyTotals[monthKey] = (monthlyTotals[monthKey] || 0) + (summary.total_co2 || 0)
+  })
+
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const currentMonth = today.getMonth()
+  const monthlyTrendData = []
+  for (let i = 5; i >= 0; i--) {
+    const monthIndex = (currentMonth - i + 12) % 12
+    const monthName = monthNames[monthIndex]
+    monthlyTrendData.push({
+      month: monthName,
+      emissions: Math.round(monthlyTotals[monthName] || 0)
+    })
+  }
+
+  // Calculate totals
   const totalWeeklyEmissions = weeklyData.reduce((acc, curr) => acc + curr.emissions, 0)
-  const avgDailyEmissions = (totalWeeklyEmissions / 7).toFixed(1)
+  const avgDailyEmissions = weeklyData.length > 0 ? totalWeeklyEmissions / weeklyData.length : 0
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-          Insights 📊
-        </h2>
-        <p className="text-slate-500 mt-1">
-          Understand your carbon footprint patterns
-        </p>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Weekly Total</CardTitle>
-            <TrendingDown className="h-4 w-4 text-emerald-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalWeeklyEmissions.toFixed(1)} kg</div>
-            <p className="text-xs text-emerald-600">↓ 12% from last week</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Daily Average</CardTitle>
-            <Calendar className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{avgDailyEmissions} kg</div>
-            <p className="text-xs text-slate-500">CO₂ per day</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Goal Progress</CardTitle>
-            <Target className="h-4 w-4 text-violet-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">73%</div>
-            <p className="text-xs text-slate-500">of monthly target</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts Grid */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Weekly Bar Chart */}
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Daily Emissions</CardTitle>
-            <CardDescription>Your daily CO₂ output this week</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200" />
-                <XAxis dataKey="day" stroke="#64748b" fontSize={12} />
-                <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${v}kg`} />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: "white",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "8px",
-                  }}
-                  formatter={(value) => [`${value} kg CO₂`, "Emissions"]}
-                />
-                <Bar 
-                  dataKey="emissions" 
-                  fill="#10b981" 
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Category Pie Chart */}
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Emissions by Category</CardTitle>
-            <CardDescription>Where your carbon comes from</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                  labelLine={false}
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  formatter={(value) => [`${value}%`, "Share"]}
-                />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Monthly Trend */}
-      <Card>
-        <CardHeader>
-          <CardTitle>6-Month Trend</CardTitle>
-          <CardDescription>Your progress over the last 6 months</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={monthlyTrendData}>
-              <defs>
-                <linearGradient id="colorEmissions" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200" />
-              <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-              <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `${v}kg`} />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: "white",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "8px",
-                }}
-                formatter={(value) => [`${value} kg CO₂`, "Total Emissions"]}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="emissions" 
-                stroke="#10b981" 
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#colorEmissions)" 
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-    </div>
+    <InsightsClient
+      weeklyData={weeklyData}
+      categoryData={categoryData}
+      monthlyTrendData={monthlyTrendData}
+      totalWeeklyEmissions={totalWeeklyEmissions}
+      avgDailyEmissions={avgDailyEmissions}
+    />
   )
 }

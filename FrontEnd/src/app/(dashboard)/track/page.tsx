@@ -10,6 +10,34 @@ import { Select } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/toast"
 import { Car, Utensils, Zap, Loader2 } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+
+// CO2 emission factors (kg CO2 per km or per unit)
+const CO2_FACTORS = {
+  transport: {
+    car: 0.21,           // kg CO2 per km
+    'electric-car': 0.05,
+    bus: 0.089,
+    train: 0.041,
+    bike: 0,
+    walk: 0,
+    carpool: 0.105,      // half of car
+  },
+  diet: {
+    vegan: 0.5,          // kg CO2 per meal
+    vegetarian: 1.0,
+    pescatarian: 1.5,
+    poultry: 2.0,
+    'red-meat': 3.5,
+    local: 0.8,
+  },
+  energy: {
+    electricity: 0.5,    // kg CO2 per kWh
+    'natural-gas': 0.18,
+    solar: 0,
+    'heating-oil': 2.7,
+  },
+}
 
 export default function TrackPage() {
   return (
@@ -63,21 +91,32 @@ function TransportForm() {
   const [distance, setDistance] = useState('')
   const router = useRouter()
   const { toast } = useToast()
+  const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      // Simulate API call - replace with actual Supabase insert
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Calculate points based on mode
-      const points = mode === 'bike' || mode === 'walk' ? parseInt(distance) * 10 : 5
-      
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+
+      const co2Factor = CO2_FACTORS.transport[mode as keyof typeof CO2_FACTORS.transport] || 0.21
+      const co2_kg = parseFloat(distance) * co2Factor
+
+      const { error } = await supabase.from('activities').insert({
+        user_id: user.id,
+        category: 'transport',
+        type: mode,
+        value: parseFloat(distance),
+        co2_kg: co2_kg,
+      })
+
+      if (error) throw error
+
       toast({
         title: "Activity Logged! 🌱",
-        description: `You added ${distance}km of ${mode}. (+${points} pts)`,
+        description: `You added ${distance}km of ${mode}. (${co2_kg.toFixed(2)} kg CO₂)`,
         variant: "success",
       })
 
@@ -166,19 +205,32 @@ function DietForm() {
   const [dietType, setDietType] = useState('')
   const router = useRouter()
   const { toast } = useToast()
+  const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const points = dietType === 'vegan' ? 20 : dietType === 'vegetarian' ? 15 : 5
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+
+      const co2Factor = CO2_FACTORS.diet[dietType as keyof typeof CO2_FACTORS.diet] || 1.5
+      const co2_kg = co2Factor // per meal
+
+      const { error } = await supabase.from('activities').insert({
+        user_id: user.id,
+        category: 'diet',
+        type: `${mealType}-${dietType}`,
+        value: 1,
+        co2_kg: co2_kg,
+      })
+
+      if (error) throw error
       
       toast({
         title: "Meal Logged! 🥗",
-        description: `${mealType} (${dietType}) recorded. (+${points} pts)`,
+        description: `${mealType} (${dietType}) recorded. (${co2_kg.toFixed(2)} kg CO₂)`,
         variant: "success",
       })
 
@@ -265,17 +317,32 @@ function EnergyForm() {
   const [usage, setUsage] = useState('')
   const router = useRouter()
   const { toast } = useToast()
+  const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+
+      const co2Factor = CO2_FACTORS.energy[energyType as keyof typeof CO2_FACTORS.energy] || 0.5
+      const co2_kg = parseFloat(usage) * co2Factor
+
+      const { error } = await supabase.from('activities').insert({
+        user_id: user.id,
+        category: 'energy',
+        type: energyType,
+        value: parseFloat(usage),
+        co2_kg: co2_kg,
+      })
+
+      if (error) throw error
       
       toast({
         title: "Energy Usage Logged! ⚡",
-        description: `${energyType} usage of ${usage} kWh recorded.`,
+        description: `${energyType} usage of ${usage} kWh recorded. (${co2_kg.toFixed(2)} kg CO₂)`,
         variant: "success",
       })
 

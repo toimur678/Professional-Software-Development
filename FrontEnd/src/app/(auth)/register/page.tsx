@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Mail, Lock, User } from "lucide-react"
+import { createClient } from '@/lib/supabase/client'
 
 export default function RegisterPage() {
   const [name, setName] = useState('')
@@ -17,6 +18,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  const supabase = createClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,11 +37,24 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
-      // Simulate registration - replace with actual Supabase auth
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          },
+        },
+      })
+
+      if (signUpError) {
+        setError(signUpError.message)
+        return
+      }
+
       // On success, redirect to dashboard
       router.push('/dashboard')
+      router.refresh()
     } catch (err) {
       setError('Failed to create account. Please try again.')
     } finally {

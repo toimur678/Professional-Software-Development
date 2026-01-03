@@ -1,6 +1,8 @@
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 
 interface Achievement {
   id: string
@@ -12,6 +14,7 @@ interface Achievement {
   progress?: number
 }
 
+// Default achievements definitions - these could also come from the database
 const allAchievements: Achievement[] = [
   { 
     id: "1", 
@@ -111,22 +114,64 @@ const allAchievements: Achievement[] = [
   },
 ]
 
-// Mock unlocked achievements - replace with actual data from Supabase
-const unlockedIds = new Set(["1", "2", "5", "10"])
+export default async function AchievementsPage() {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
 
-// Mock progress data
-const progressData: Record<string, number> = {
-  "3": 15,
-  "4": 67,
-  "6": 8,
-  "7": 45,
-  "8": 320,
-  "9": 3,
-  "11": 4,
-  "12": 12,
-}
+  // Fetch user's unlocked achievements
+  const { data: userAchievements } = await supabase
+    .from('user_achievements')
+    .select('achievement_id')
+    .eq('user_id', user.id)
 
-export default function AchievementsPage() {
+  const unlockedIds = new Set(
+    (userAchievements as { achievement_id: string }[] | null)?.map(ua => ua.achievement_id) || []
+  )
+
+  // Fetch user's points for progress calculation
+  const { data: userPoints } = await supabase
+    .from('user_points')
+    .select('total_points')
+    .eq('user_id', user.id)
+    .single()
+
+  // Fetch activities for progress tracking
+  const { data: activities } = await supabase
+    .from('activities')
+    .select('category, type, value')
+    .eq('user_id', user.id)
+
+  type ActivityRow = { category: string; type: string; value: number }
+  const typedActivities = (activities as ActivityRow[] | null) || []
+
+  // Calculate progress for various achievements
+  const totalActivities = typedActivities.length
+  const bikeKm = typedActivities.filter(a => a.type === 'bike').reduce((sum, a) => sum + (a.value || 0), 0)
+  const veganMeals = typedActivities.filter(a => a.type?.includes('vegan')).length
+  const vegetarianMeals = typedActivities.filter(a => a.type?.includes('vegetarian') || a.type?.includes('vegan')).length
+  const publicTransit = typedActivities.filter(a => a.type === 'bus' || a.type === 'train').length
+  const solarDays = typedActivities.filter(a => a.type === 'solar').length
+  const totalPoints = (userPoints as { total_points: number } | null)?.total_points || 0
+
+  const progressData: Record<string, number> = {
+    "1": totalActivities,
+    "4": bikeKm,
+    "5": vegetarianMeals,
+    "8": totalPoints,
+    "10": publicTransit,
+    "11": veganMeals,
+    "12": solarDays,
+  }
+
+  // Check for "First Steps" achievement
+  if (totalActivities >= 1 && !unlockedIds.has("1")) {
+    unlockedIds.add("1")
+  }
+
   const categories = [...new Set(allAchievements.map(a => a.category))]
 
   return (

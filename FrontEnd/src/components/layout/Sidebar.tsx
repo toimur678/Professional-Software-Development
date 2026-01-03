@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { LayoutDashboard, PlusCircle, LineChart, Trophy, Lightbulb, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 
 const routes = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard', color: 'text-sky-500' },
@@ -15,10 +16,13 @@ const routes = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const supabase = createClient()
 
   const handleLogout = async () => {
-    // Add logout logic here
-    console.log('Logging out...')
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
   }
 
   return (
